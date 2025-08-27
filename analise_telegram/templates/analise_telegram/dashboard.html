@@ -1,0 +1,112 @@
+{% extends 'analise_telegram/base.html' %}
+
+{% block title %}Dashboard - Observatório Telegram{% endblock %}
+
+{% block content %}
+    <h1 class="mb-4 text-center">Dashboard do Observatório de Conteúdo Telegram</h1>
+
+    <div class="row text-center mb-5">
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-primary">Canais Monitorados</h5>
+                    <p class="card-text fs-1 fw-bold">{{ total_canais }}</p>
+                    <a href="{% url 'lista_canais' %}" class="btn btn-outline-primary btn-sm">Ver Canais</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-success">Total de Mensagens</h5>
+                    <p class="card-text fs-1 fw-bold">{{ total_mensagens }}</p>
+                    <a href="{% url 'lista_mensagens' %}" class="btn btn-outline-success btn-sm">Ver Mensagens</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-danger">Mensagens de Risco (7 Dias)</h5>
+                    <p class="card-text fs-1 fw-bold">{{ mensagens_risco_7dias }}</p>
+                    <a href="{% url 'lista_mensagens' %}?eh_risco=True&periodo=7dias" class="btn btn-outline-danger btn-sm">Analisar Riscos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title text-info">Mensagens Neutras (7 Dias)</h5>
+                    <p class="card-text fs-1 fw-bold">{{ mensagens_neutras_7dias }}</p>
+                    <a href="{% url 'lista_mensagens' %}?sentimento=neutro&periodo=7dias" class="btn btn-outline-info btn-sm">Ver Neutras</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm h-100 p-3">
+                <h2 class="card-title h4">Tendência de Mensagens por Dia</h2>
+                <p class="text-muted">Aqui teríamos um gráfico de linhas mostrando o volume de mensagens por dia.</p>
+                
+                <img src="https://via.placeholder.com/800x350?text=Gráfico+de+Tendência+de+Mensagens" class="img-fluid rounded" alt="Gráfico de exemplo">
+            </div>
+        </div>
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100 p-3">
+                <h2 class="card-title h4">Distribuição de Sentimentos</h2>
+                <p class="text-muted">Um gráfico de pizza ou rosca mostrando a proporção de mensagens por sentimento.</p>
+                
+                <img src="https://via.placeholder.com/350x350?text=Gráfico+de+Sentimentos" class="img-fluid rounded" alt="Gráfico de exemplo">
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100 p-3">
+                <h2 class="card-title h4">Últimas Mensagens de Risco Detectadas</h2>
+                {% if ultimas_mensagens_risco %}
+                    <ul class="list-group list-group-flush">
+                        {% for msg in ultimas_mensagens_risco %}
+                            <li class="list-group-item">
+                                <small class="text-muted">{{ msg.data_publicacao|date:"d/m/Y H:i" }} - **{{ msg.canal.nome }}**</small><br>
+                                "{{ msg.texto|truncatechars:150 }}"
+                                <div class="mt-1">
+                                    <span class="badge bg-danger">Risco: Sim</span>
+                                    <span class="badge bg-secondary">{{ msg.sentimento|default:"N/A"|capfirst }}</span>
+                                    {% if msg.palavras_chave_encontradas %}
+                                        {% for palavra in msg.palavras_chave_encontradas %}
+                                            <span class="badge bg-info text-dark">{{ palavra }}</span>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <a href="{% url 'lista_mensagens' %}?eh_risco=True" class="btn btn-link mt-3 float-end">Ver todas as mensagens de risco &raquo;</a>
+                {% else %}
+                    <p class="text-muted">Nenhuma mensagem de risco detectada ainda ou sem dados recentes.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100 p-3">
+                <h2 class="card-title h4">Termos Mais Frequentes (Últimos 7 Dias)</h2>
+                <p class="text-muted">Uma nuvem de palavras ou lista dos termos mais usados nas mensagens.</p>
+                {% if termos_frequentes %}
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for termo, freq in termos_frequentes %}
+                            <span class="badge bg-primary text-light p-2" style="font-size: {{ freq|add:8 }}px;">{{ termo }}</span>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">Nenhum termo frequente para exibir ainda.</p>
+                {% endif %}
+                <img src="https://via.placeholder.com/500x200?text=Nuvem+de+Palavras" class="img-fluid rounded mt-3" alt="Nuvem de palavras de exemplo">
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
